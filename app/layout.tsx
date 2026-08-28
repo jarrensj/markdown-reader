@@ -29,8 +29,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           >
             This project is open source
           </a>
-          . We don&apos;t store anything you paste — it stays in your
-          browser&apos;s local storage.
+          . The markdown is only saved in your browser&apos;s local storage and
+          never sent to a server.
         </footer>
       </body>
     </html>
