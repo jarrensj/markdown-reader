@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useState, type DragEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type DragEvent,
+  type UIEvent,
+} from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -18,6 +24,7 @@ function isMarkdownFile(file: File) {
 export default function MarkdownEditor() {
   const [markdown, setMarkdown] = useState("");
   const [isDragging, setIsDragging] = useState(false);
+  const previewRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -55,6 +62,20 @@ export default function MarkdownEditor() {
     file.text().then(handleChange);
   };
 
+  const handleEditorScroll = (e: UIEvent<HTMLTextAreaElement>) => {
+    const editor = e.currentTarget;
+    const preview = previewRef.current;
+    if (!preview) return;
+
+    const editorMax = editor.scrollHeight - editor.clientHeight;
+    const previewMax = preview.scrollHeight - preview.clientHeight;
+    if (editorMax <= 0 || previewMax <= 0) return;
+
+    // Percentage-based mapping — rendered blocks don't correspond 1:1 to
+    // source lines, so the panes stay in step but not line-locked.
+    preview.scrollTop = (editor.scrollTop / editorMax) * previewMax;
+  };
+
   return (
     <div
       onDragOver={handleDragOver}
@@ -65,11 +86,15 @@ export default function MarkdownEditor() {
       <textarea
         value={markdown}
         onChange={(e) => handleChange(e.target.value)}
+        onScroll={handleEditorScroll}
         placeholder="Paste or type your markdown here, or drop a .md file..."
         aria-label="Markdown input"
-        className="min-h-[50vh] w-full resize-none rounded-lg border border-zinc-300 bg-white p-4 font-mono text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+        className="min-h-[50vh] w-full resize-none rounded-lg border border-zinc-300 bg-white p-4 font-mono text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-400 md:h-[70vh] dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
       />
-      <div className="prose prose-zinc min-h-[50vh] max-w-none rounded-lg border border-zinc-300 p-4 dark:prose-invert dark:border-zinc-700">
+      <div
+        ref={previewRef}
+        className="prose prose-zinc min-h-[50vh] max-w-none overflow-y-auto rounded-lg border border-zinc-300 p-4 md:h-[70vh] dark:prose-invert dark:border-zinc-700"
+      >
         <ReactMarkdown remarkPlugins={[remarkGfm]}>{markdown}</ReactMarkdown>
       </div>
       {isDragging && (
