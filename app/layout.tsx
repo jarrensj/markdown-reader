@@ -20,7 +20,19 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
-      <body>{children}</body>
+      <body className="flex min-h-screen flex-col">
+        {children}
+        <footer className="p-4 text-center text-sm text-zinc-500 dark:text-zinc-400">
+          <a
+            href="https://github.com/jarrensj/markdown-reader"
+            className="underline"
+          >
+            This project is open source
+          </a>
+          . We don&apos;t store anything you paste — it stays in your
+          browser&apos;s local storage.
+        </footer>
+      </body>
     </html>
   );
 }
