@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "markdown reader",
-  description: "markdown reader",
+  description: "markdown reader for devs",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
