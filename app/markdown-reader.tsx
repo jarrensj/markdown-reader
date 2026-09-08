@@ -2,8 +2,10 @@
 
 import {
   useEffect,
+  useRef,
   useState,
   useSyncExternalStore,
+  type ChangeEvent,
   type DragEvent,
 } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
@@ -97,6 +99,7 @@ export default function MarkdownReader() {
   const [tab, setTab] = useState<Tab>("write");
   const [isDragging, setIsDragging] = useState(false);
   const { theme, cycleTheme } = useTheme();
+  const fileInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -125,16 +128,26 @@ export default function MarkdownReader() {
     }
   };
 
-  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragging(false);
-
-    const file = e.dataTransfer.files[0];
+  // Shared by the drop zone and the open button: read the file in the browser
+  // and load it into the editor, staying on whichever tab is showing.
+  const loadFile = (file: File | undefined) => {
     if (!file || !isMarkdownFile(file)) {
       return;
     }
 
     file.text().then(handleChange);
+  };
+
+  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    loadFile(e.dataTransfer.files[0]);
+  };
+
+  const handleFileInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    loadFile(e.target.files?.[0]);
+    // Clear the input so picking the same file again still fires a change.
+    e.target.value = "";
   };
 
   const activeTheme =
@@ -177,16 +190,44 @@ export default function MarkdownReader() {
           aria-hidden
           className="mx-[clamp(12px,1.6vw,20px)] h-4 w-px self-center bg-rule"
         />
-        <button
-          type="button"
-          onClick={cycleTheme}
-          aria-label="cycle theme"
-          title={`theme: ${activeTheme.label}`}
-          className="flex h-[43px] items-center gap-2 whitespace-nowrap px-0.5 text-[13px] leading-5 text-muted transition-colors duration-[120ms] hover:text-fg"
-        >
-          <span aria-hidden>{activeTheme.glyph}</span>
-          {activeTheme.label}
-        </button>
+        <div className="flex gap-3 min-[480px]:gap-5">
+          <button
+            type="button"
+            onClick={() => fileInput.current?.click()}
+            title="open a .md file"
+            className="flex h-[43px] items-center gap-2 whitespace-nowrap px-0.5 text-[13px] leading-5 text-muted transition-colors duration-[120ms] hover:text-fg"
+          >
+            {/* The glyph is the first thing to go on narrow screens; the word
+                carries the meaning on its own, the arrow does not. */}
+            <span aria-hidden className="hidden min-[480px]:inline">
+              ↑
+            </span>
+            open
+          </button>
+          <button
+            type="button"
+            onClick={cycleTheme}
+            aria-label="cycle theme"
+            title={`theme: ${activeTheme.label}`}
+            className="flex h-[43px] items-center gap-2 whitespace-nowrap px-0.5 text-[13px] leading-5 text-muted transition-colors duration-[120ms] hover:text-fg"
+          >
+            <span aria-hidden>{activeTheme.glyph}</span>
+            {/* Narrow screens keep the glyph only, so the open button — the
+                only way to load a file without drag-and-drop — still fits.
+                aria-label and title carry the meaning either way. */}
+            <span className="hidden min-[480px]:inline">
+              {activeTheme.label}
+            </span>
+          </button>
+        </div>
+        <input
+          ref={fileInput}
+          type="file"
+          accept=".md,.markdown,text/markdown"
+          onChange={handleFileInputChange}
+          tabIndex={-1}
+          className="hidden"
+        />
       </header>
 
       <div className="relative flex flex-1 flex-col">
