@@ -1,27 +1,282 @@
 @import "tailwindcss";
-@plugin "@tailwindcss/typography";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+  --gutter: clamp(16px, 2.5vw, 24px);
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --bg: oklch(97.5% 0.004 250);
+  --fg: oklch(22% 0.012 260);
+  --muted: oklch(48% 0.012 260);
+  --hint: oklch(66% 0.01 260);
+  --rule: oklch(87% 0.008 250);
+  --code-bg: oklch(93% 0.006 250);
+  --pre-bg: #ffffff;
+  --accent: oklch(52% 0.15 150);
+  --placeholder: oklch(58% 0.01 260);
+  --overlay-bg: rgb(250 250 251 / 0.82);
+  color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  :root:not([data-theme="light"]) {
+    --bg: oklch(15% 0.008 260);
+    --fg: oklch(90% 0.006 260);
+    --muted: oklch(62% 0.012 260);
+    --hint: oklch(50% 0.012 260);
+    --rule: oklch(26% 0.01 260);
+    --code-bg: oklch(21% 0.01 260);
+    --pre-bg: oklch(12.5% 0.008 260);
+    --accent: oklch(80% 0.16 150);
+    --placeholder: oklch(55% 0.012 260);
+    --overlay-bg: rgb(18 20 24 / 0.78);
+    color-scheme: dark;
   }
 }
 
+[data-theme="dark"] {
+  --bg: oklch(15% 0.008 260);
+  --fg: oklch(90% 0.006 260);
+  --muted: oklch(62% 0.012 260);
+  --hint: oklch(50% 0.012 260);
+  --rule: oklch(26% 0.01 260);
+  --code-bg: oklch(21% 0.01 260);
+  --pre-bg: oklch(12.5% 0.008 260);
+  --accent: oklch(80% 0.16 150);
+  --placeholder: oklch(55% 0.012 260);
+  --overlay-bg: rgb(18 20 24 / 0.78);
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  --bg: oklch(97.5% 0.004 250);
+  --fg: oklch(22% 0.012 260);
+  --muted: oklch(48% 0.012 260);
+  --hint: oklch(66% 0.01 260);
+  --rule: oklch(87% 0.008 250);
+  --code-bg: oklch(93% 0.006 250);
+  --pre-bg: #ffffff;
+  --accent: oklch(52% 0.15 150);
+  --placeholder: oklch(58% 0.01 260);
+  --overlay-bg: rgb(250 250 251 / 0.82);
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-hint: var(--hint);
+  --color-rule: var(--rule);
+  --color-code-bg: var(--code-bg);
+  --color-pre-bg: var(--pre-bg);
+  --color-accent: var(--accent);
+  --color-overlay: var(--overlay-bg);
+  --font-mono:
+    var(--font-ibm-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-mono);
+}
+
+::placeholder {
+  color: var(--placeholder);
+  opacity: 1;
+}
+
+/* Rendered markdown. The syntax stays visible as muted decoration, drawn with
+   pseudo-elements so it never lands in the copied text. */
+.md {
+  max-width: 80ch;
+  font-size: 14px;
+  line-height: 24px;
+  color: var(--fg);
+  text-wrap: pretty;
+}
+
+.md h1,
+.md h2,
+.md h3 {
+  font-weight: 600;
+}
+
+.md h1 {
+  font-size: 20px;
+  line-height: 28px;
+  margin: 0 0 24px;
+}
+
+.md h2 {
+  font-size: 16px;
+  line-height: 24px;
+  margin: 40px 0 16px;
+}
+
+.md h3 {
+  font-size: 14px;
+  line-height: 24px;
+  margin: 32px 0 12px;
+}
+
+.md h1::before,
+.md h2::before,
+.md h3::before,
+.md li::before {
+  color: var(--hint);
+}
+
+.md h1::before {
+  content: "# ";
+}
+
+.md h2::before {
+  content: "## ";
+}
+
+.md h3::before {
+  content: "### ";
+}
+
+.md p {
+  margin: 0 0 16px;
+}
+
+.md ul,
+.md ol {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px;
+}
+
+.md li {
+  position: relative;
+  padding-left: 2ch;
+  margin: 4px 0;
+}
+
+.md li::before {
+  position: absolute;
+  left: 0;
+  content: "-";
+}
+
+/* "1." already fills 2ch, so numbered items need one more for the gap. */
+.md ol > li {
+  padding-left: 3ch;
+}
+
+.md ol > li::before {
+  content: counter(list-item) ".";
+}
+
+.md code {
+  font-family: inherit;
+  font-size: inherit;
+  background: var(--code-bg);
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: var(--fg);
+}
+
+.md pre {
+  position: relative;
+  border: 1px solid var(--rule);
+  background: var(--pre-bg);
+  border-radius: 4px;
+  padding: 16px;
+  margin: 0 0 16px;
+  font-size: 13px;
+  line-height: 20px;
+  overflow-x: auto;
+}
+
+.md pre[data-lang]::before {
+  content: attr(data-lang);
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--muted);
+}
+
+.md pre code {
+  font: inherit;
+  background: transparent;
+  padding: 0;
+}
+
+.md blockquote {
+  position: relative;
+  margin: 24px 0;
+  padding: 0 0 0 2ch;
+  font-style: italic;
+  color: var(--muted);
+}
+
+.md blockquote::before {
+  content: ">";
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-style: normal;
+  color: var(--accent);
+}
+
+.md blockquote p {
+  margin: 0;
+}
+
+.md strong {
+  font-weight: 600;
+  color: var(--fg);
+}
+
+.md a {
+  color: var(--fg);
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-underline-offset: 3px;
+  transition: color 120ms ease;
+}
+
+.md a:hover {
+  color: var(--accent);
+}
+
+.md hr {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin: 24px 0;
+}
+
+.md table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 16px;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.md th {
+  text-align: left;
+  font-weight: 600;
+  padding: 0 16px 8px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.md td {
+  padding: 8px 16px 8px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.md th:last-child,
+.md td:last-child {
+  padding-right: 0;
+}
+
+.md tbody tr:last-child td {
+  border-bottom: 0;
+  padding-bottom: 0;
 }
